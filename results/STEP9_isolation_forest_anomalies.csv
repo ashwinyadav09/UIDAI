@@ -1,0 +1,3 @@
+state,age_0_5,age_5_17,age_18_greater,total_enrolments,bio_age_5_17,bio_age_17_,total_bio_updates,total_demo_updates,demo_age_5_17,bio_update_rate,demo_update_rate,child_enrol_pct,youth_enrol_pct,adult_enrol_pct,iso_forest_anomaly,iso_forest_score
+meghalaya,21072,53089,35078,109239,35911.0,50663.0,86574.0,63941,6184,79.25191552467525,58.53312461666621,19.289814077389945,48.59894360072868,32.11124232188138,True,-0.6115763223145156
+unknown,0,1,213,214,0.0,0.0,0.0,2,0,0.0,0.9345794392523363,0.0,0.46728971962616817,99.53271028037383,True,-0.7191317502437038

@@ -32,7 +32,7 @@ print()
 # ============================================================================
 # LOAD CLEANED DATA
 # ============================================================================
-print("📂 Loading cleaned data...")
+print(" Loading cleaned data...")
 try:
     enrolment = pd.read_csv('../data/processed/cleaned_enrolment.csv')
     biometric = pd.read_csv('../data/processed/cleaned_biometric.csv')
@@ -42,7 +42,7 @@ try:
     print(f"  - Biometric: {len(biometric):,} rows")
     print(f"  - Demographic: {len(demographic):,} rows")
 except Exception as e:
-    print(f"❌ Error loading data: {e}")
+    print(f" Error loading data: {e}")
     print("Please run STEP2_FINAL_intelligent_cleaning.py first!")
     exit()
 
@@ -51,7 +51,7 @@ print()
 # ============================================================================
 # PREPARE DATA - Convert dates
 # ============================================================================
-print("📊 Preparing data...")
+print(" Preparing data...")
 
 # Convert date columns
 enrolment['date'] = pd.to_datetime(enrolment['date'], format='%d-%m-%Y')
@@ -69,7 +69,7 @@ print()
 # ============================================================================
 # STEP 6.1: Calculate Total Enrolments Over Time by State
 # ============================================================================
-print("📈 Step 6.1: Calculating total enrolments over time by state...")
+print(" Step 6.1: Calculating total enrolments over time by state...")
 
 # Aggregate by state and month
 enrolment_trends = enrolment.groupby(['state', 'month']).agg({
@@ -84,7 +84,7 @@ print()
 # ============================================================================
 # STEP 6.2: Calculate Total Biometric Updates Over Time by State
 # ============================================================================
-print("📈 Step 6.2: Calculating total biometric updates over time by state...")
+print(" Step 6.2: Calculating total biometric updates over time by state...")
 
 biometric_trends = biometric.groupby(['state', 'month']).agg({
     'total_bio_updates': 'sum'
@@ -98,7 +98,7 @@ print()
 # ============================================================================
 # STEP 6.3: Calculate Total Demographic Updates Over Time by State
 # ============================================================================
-print("📈 Step 6.3: Calculating total demographic updates over time by state...")
+print(" Step 6.3: Calculating total demographic updates over time by state...")
 
 demographic_trends = demographic.groupby(['state', 'month']).agg({
     'total_demo_updates': 'sum'
@@ -112,7 +112,7 @@ print()
 # ============================================================================
 # STEP 6.4: Calculate Update Rates by State
 # ============================================================================
-print("📊 Step 6.4: Calculating update rates by state...")
+print(" Step 6.4: Calculating update rates by state...")
 
 # Total enrolments by state
 total_enrol_by_state = enrolment.groupby('state')['total_enrolments'].sum().reset_index()
@@ -156,7 +156,7 @@ state_summary['demo_vs_national'] = state_summary['demographic_update_activity']
 # ============================================================================
 # IDENTIFY TOP 10 STATES FOR VISUALIZATION
 # ============================================================================
-print("🔝 Identifying top 10 states by total enrolments...")
+print(" Identifying top 10 states by total enrolments...")
 
 top_10_states = state_summary.nlargest(10, 'total_enrolments')['state'].tolist()
 
@@ -169,7 +169,7 @@ print()
 # ============================================================================
 # SAVE RESULTS
 # ============================================================================
-print("💾 Saving trend analysis results...")
+print(" Saving trend analysis results...")
 
 # Save state summary
 state_summary.to_csv('../results/STEP6_state_summary.csv', index=False)
@@ -189,7 +189,7 @@ print()
 # ============================================================================
 # CREATE VISUALIZATIONS - TREND CHARTS FOR TOP 10 STATES
 # ============================================================================
-print("📊 Creating trend charts for top 10 states...")
+print(" Creating trend charts for top 10 states...")
 
 # Create figure with 3 subplots
 fig, axes = plt.subplots(3, 1, figsize=(18, 14))
@@ -298,10 +298,10 @@ print()
 # SUMMARY
 # ============================================================================
 print("=" * 80)
-print("✅ STEP 6 COMPLETE!")
+print("STEP 6 COMPLETE!")
 print("=" * 80)
 print()
-print("📊 WHAT WAS DONE:")
+print(" WHAT WAS DONE:")
 print("  ✓ Calculated total enrolments over time by state")
 print("  ✓ Calculated total biometric updates over time by state")
 print("  ✓ Calculated total demographic updates over time by state")
@@ -310,7 +310,7 @@ print("  ✓ Identified top 10 states by enrolment")
 print("  ✓ Created trend charts for top 10 states")
 print("  ✓ Created update activity comparison charts")
 print()
-print("📁 FILES CREATED:")
+print(" FILES CREATED:")
 print("  ✓ results/STEP6_state_summary.csv")
 print("  ✓ results/STEP6_enrolment_trends.csv")
 print("  ✓ results/STEP6_biometric_trends.csv")
@@ -318,7 +318,7 @@ print("  ✓ results/STEP6_demographic_trends.csv")
 print("  ✓ visualizations/STEP6_state_trends_top10.png")
 print("  ✓ visualizations/STEP6_update_activity_comparison.png")
 print()
-print("🎯 KEY FINDINGS:")
+print(" KEY FINDINGS:")
 print(f"  - Analyzed {state_summary.shape[0]} states/UTs")
 print(f"  - National biometric update activity: {national_bio_avg:.2f}%")
 print(f"  - National demographic update activity: {national_demo_avg:.2f}%")

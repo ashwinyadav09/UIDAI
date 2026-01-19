@@ -1,15 +1,17 @@
 """
-PHASE 3 - STEP 8: Biometric Update Compliance Analysis
-=======================================================
+PHASE 3 - STEP 8: Biometric Update Compliance Analysis (CORRECTED)
+===================================================================
 Analyzes biometric update compliance for critical ages (5 and 15)
 
 Calculates:
-- Age 5 compliance: % of 5-year-olds getting biometric updates
-- Age 15 compliance: % of 15-year-olds getting biometric updates  
+- Age 5-17 compliance: % of children getting biometric updates
 - Identifies states with low compliance
 - Shows who might face service exclusion
 
-Author: UIDAI Hackathon Project
+FIXES:
+- Corrected column names to match cleaned data
+- Enrolment: age_0_5, age_5_17, age_18_greater
+- Biometric: bio_age_5_17, bio_age_17_greater (likely typo for 17+)
 """
 
 import pandas as pd
@@ -24,26 +26,29 @@ sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (16, 10)
 
 print("=" * 80)
-print("PHASE 3 - STEP 8: BIOMETRIC UPDATE COMPLIANCE ANALYSIS")
+print("PHASE 3 - STEP 8: BIOMETRIC UPDATE COMPLIANCE ANALYSIS (CORRECTED)")
 print("=" * 80)
 print()
-print("Critical Ages for Biometric Updates:")
+print("📌 Critical Ages for Biometric Updates:")
 print("  - Age 5:  First mandatory biometric update milestone")
 print("  - Age 15: Second mandatory biometric update milestone")
+print("  - Our data groups 5-17 together, covering both milestones")
 print()
 
 # ============================================================================
 # LOAD CLEANED DATA
 # ============================================================================
-print(" Loading cleaned data...")
+print("📂 Loading cleaned data...")
 try:
     enrolment = pd.read_csv('../data/processed/cleaned_enrolment.csv')
     biometric = pd.read_csv('../data/processed/cleaned_biometric.csv')
     print("✓ Data loaded successfully!")
     print(f"  - Enrolment: {len(enrolment):,} rows")
     print(f"  - Biometric: {len(biometric):,} rows")
+    print(f"  - Enrolment columns: {list(enrolment.columns)}")
+    print(f"  - Biometric columns: {list(biometric.columns)}")
 except Exception as e:
-    print(f" Error loading data: {e}")
+    print(f"❌ Error loading data: {e}")
     print("Please run STEP2_FINAL_intelligent_cleaning.py first!")
     exit()
 
@@ -52,22 +57,50 @@ print()
 # ============================================================================
 # STEP 8.1: Aggregate Data by State
 # ============================================================================
-print(" Step 8.1: Aggregating enrolment and biometric update data by state...")
+print("📊 Step 8.1: Aggregating enrolment and biometric update data by state...")
 
-# Enrolment by state
+# Enrolment by state - using correct column names
 enrol_by_state = enrolment.groupby('state').agg({
-    'registrations_0_to_5': 'sum',
-    'registrations_5_to_17': 'sum',
-    'registrations_18_and_above': 'sum',
+    'age_0_5': 'sum',
+    'age_5_17': 'sum',
+    'age_18_greater': 'sum',
     'total_enrolments': 'sum'
 }).reset_index()
 
-# Biometric updates by state
-bio_by_state = biometric.groupby('state').agg({
-    'biometric_updates_5_to_17': 'sum',
-    'biometric_updates_18_and_above': 'sum',
-    'total_bio_updates': 'sum'
-}).reset_index()
+# Rename for consistency
+enrol_by_state.columns = ['state', 'registrations_0_to_5', 'registrations_5_to_17', 
+                           'registrations_18_and_above', 'total_enrolments']
+
+# Biometric updates by state - using correct column names
+# Check which columns exist
+bio_cols = biometric.columns.tolist()
+print(f"  Biometric columns available: {[c for c in bio_cols if 'bio' in c.lower() or 'age' in c.lower()]}")
+
+# Aggregate biometric data
+bio_agg_dict = {}
+if 'bio_age_5_17' in bio_cols:
+    bio_agg_dict['bio_age_5_17'] = 'sum'
+if 'bio_age_17_greater' in bio_cols:
+    bio_agg_dict['bio_age_17_greater'] = 'sum'
+elif 'bio_age_17_' in bio_cols:  # Handle potential truncation
+    bio_agg_dict['bio_age_17_'] = 'sum'
+if 'total_bio_updates' in bio_cols:
+    bio_agg_dict['total_bio_updates'] = 'sum'
+
+bio_by_state = biometric.groupby('state').agg(bio_agg_dict).reset_index()
+
+# Rename columns for consistency
+rename_dict = {'state': 'state'}
+if 'bio_age_5_17' in bio_by_state.columns:
+    rename_dict['bio_age_5_17'] = 'biometric_updates_5_to_17'
+if 'bio_age_17_greater' in bio_by_state.columns:
+    rename_dict['bio_age_17_greater'] = 'biometric_updates_18_and_above'
+elif 'bio_age_17_' in bio_by_state.columns:
+    rename_dict['bio_age_17_'] = 'biometric_updates_18_and_above'
+if 'total_bio_updates' in bio_by_state.columns:
+    rename_dict['total_bio_updates'] = 'total_bio_updates'
+
+bio_by_state = bio_by_state.rename(columns=rename_dict)
 
 # Merge datasets
 compliance = enrol_by_state.merge(bio_by_state, on='state', how='outer').fillna(0)
@@ -76,12 +109,12 @@ print(f"✓ Data aggregated for {len(compliance)} states")
 print()
 
 # ============================================================================
-# STEP 8.2: Calculate Age 5 Compliance
+# STEP 8.2: Calculate Age 5-17 Compliance (includes both age 5 and 15)
 # ============================================================================
-print(" Step 8.2: Calculating Age 5 compliance (biometric update milestone)...")
+print("📈 Step 8.2: Calculating Age 5-17 compliance (biometric update milestones)...")
 print()
 
-# Age 5 compliance calculation:
+# Age 5-17 compliance calculation:
 # We compare biometric updates for age 5-17 group against enrolments in 5-17 group
 # This shows what % of children in that age bracket are getting biometric updates
 
@@ -92,15 +125,15 @@ compliance['age_5_17_update_rate'] = (
 # Note: Since our data groups are 5-17, we calculate overall compliance for this group
 # which includes both age 5 and age 15 milestones
 
-print(" Age 5-17 Update Compliance:")
+print("📊 Age 5-17 Update Compliance:")
 print(f"   Total children enrolled (5-17): {compliance['registrations_5_to_17'].sum():,.0f}")
 print(f"   Total biometric updates (5-17): {compliance['biometric_updates_5_to_17'].sum():,.0f}")
 print()
 
 # ============================================================================
-# STEP 8.3: Calculate Age 15 Compliance
+# STEP 8.3: Set Child Compliance Rate
 # ============================================================================
-print(" Step 8.3: Calculating Age 15 compliance (second biometric milestone)...")
+print("📈 Step 8.3: Setting child biometric compliance rate...")
 print()
 
 # Age 15 is within the 5-17 bracket, so we use the same metric
@@ -108,7 +141,7 @@ print()
 
 compliance['child_compliance_rate'] = compliance['age_5_17_update_rate']
 
-print(" Child Biometric Compliance (Ages 5-17, including both milestones):")
+print("📊 Child Biometric Compliance (Ages 5-17, including both milestones):")
 print(f"   Average update rate: {compliance['child_compliance_rate'].mean():.2f}%")
 print()
 
@@ -117,7 +150,7 @@ compliance['adult_update_rate'] = (
     compliance['biometric_updates_18_and_above'] / compliance['registrations_18_and_above'] * 100
 ).replace([np.inf, -np.inf], 0)
 
-print(" Adult Biometric Compliance (Ages 18+) for comparison:")
+print("📊 Adult Biometric Compliance (Ages 18+) for comparison:")
 print(f"   Average update rate: {compliance['adult_update_rate'].mean():.2f}%")
 print()
 
@@ -136,7 +169,7 @@ national_adult_enrol = compliance['registrations_18_and_above'].sum()
 national_adult_updates = compliance['biometric_updates_18_and_above'].sum()
 national_adult_compliance = (national_adult_updates / national_adult_enrol * 100) if national_adult_enrol > 0 else 0
 
-print(" National Benchmarks:")
+print("📊 National Benchmarks:")
 print(f"  - Child (5-17) Compliance:  {national_child_compliance:.2f}%")
 print(f"  - Adult (18+) Compliance:   {national_adult_compliance:.2f}%")
 print(f"  - Child vs Adult Ratio:     {(national_child_compliance/national_adult_compliance if national_adult_compliance > 0 else 0):.2f}x")
@@ -145,14 +178,14 @@ print()
 # ============================================================================
 # STEP 8.5: Identify States with Low Compliance
 # ============================================================================
-print(" Step 8.5: Identifying states with low biometric compliance...")
+print("🔍 Step 8.5: Identifying states with low biometric compliance...")
 print("   Using threshold: 70% of national child compliance")
 print()
 
 # Set threshold
 threshold_compliance = national_child_compliance * 0.7
 
-print(f"📏 Threshold: {threshold_compliance:.2f}% (70% of national avg)")
+print(f"⚠️  Threshold: {threshold_compliance:.2f}% (70% of national avg)")
 print()
 
 # Calculate compliance gap
@@ -164,7 +197,7 @@ compliance['low_compliance'] = compliance['child_compliance_rate'] < threshold_c
 # Get low compliance states
 low_compliance_states = compliance[compliance['low_compliance']].copy()
 
-print(f" LOW COMPLIANCE STATES: {len(low_compliance_states)} states")
+print(f"🚨 LOW COMPLIANCE STATES: {len(low_compliance_states)} states")
 if len(low_compliance_states) > 0:
     print("\nStates with low biometric update compliance (Ages 5-17):")
     low_sorted = low_compliance_states.sort_values('child_compliance_rate')
@@ -180,7 +213,7 @@ print()
 # ============================================================================
 # STEP 8.6: Identify Who Might Face Service Exclusion
 # ============================================================================
-print("  Step 8.6: Identifying children who might face service exclusion...")
+print("⚠️  Step 8.6: Identifying children who might face service exclusion...")
 print()
 
 # Calculate children NOT getting updates
@@ -195,7 +228,7 @@ compliance['exclusion_risk_percentage'] = (
 # Sort by number of children at risk
 high_risk_states = compliance.nlargest(15, 'children_not_updated')
 
-print(" TOP 15 STATES - Children at Risk of Service Exclusion:")
+print("🚨 TOP 15 STATES - Children at Risk of Service Exclusion:")
 print("   (States with highest number of children not getting biometric updates)")
 print()
 for idx, row in high_risk_states.iterrows():
@@ -209,7 +242,7 @@ total_at_risk = compliance['children_not_updated'].sum()
 total_children = compliance['registrations_5_to_17'].sum()
 national_risk_pct = (total_at_risk / total_children * 100) if total_children > 0 else 0
 
-print(f" NATIONAL SUMMARY:")
+print(f"📊 NATIONAL SUMMARY:")
 print(f"  - Total children (5-17): {total_children:,.0f}")
 print(f"  - Children not updated: {total_at_risk:,.0f}")
 print(f"  - % at risk of exclusion: {national_risk_pct:.2f}%")
@@ -218,7 +251,7 @@ print()
 # ============================================================================
 # STEP 8.7: Priority Categorization
 # ============================================================================
-print(" Step 8.7: Categorizing states by intervention priority...")
+print("🎯 Step 8.7: Categorizing states by intervention priority...")
 
 def get_compliance_priority(row, threshold):
     """Categorize compliance priority"""
@@ -242,7 +275,7 @@ compliance['priority'] = compliance.apply(lambda x: get_compliance_priority(x, t
 
 priority_counts = compliance['priority'].value_counts()
 
-print(" Priority Distribution:")
+print("📊 Priority Distribution:")
 for priority, count in priority_counts.items():
     print(f"  {priority:50s}: {count:2d} states")
 print()
@@ -251,7 +284,7 @@ print()
 critical_states = compliance[compliance['priority'] == 'Critical (Low compliance + Large population)']
 
 if len(critical_states) > 0:
-    print(f" CRITICAL PRIORITY STATES: {len(critical_states)}")
+    print(f"🔴 CRITICAL PRIORITY STATES: {len(critical_states)}")
     print("   States requiring URGENT intervention:")
     for idx, row in critical_states.iterrows():
         print(f"  {row['state']:40s} → {row['child_compliance_rate']:>6.2f}%, {row['registrations_5_to_17']:>10,.0f} children")
@@ -260,7 +293,7 @@ if len(critical_states) > 0:
 # ============================================================================
 # SAVE RESULTS
 # ============================================================================
-print(" Saving biometric compliance analysis...")
+print("💾 Saving biometric compliance analysis...")
 
 compliance.to_csv('../results/STEP8_biometric_compliance_analysis.csv', index=False)
 low_compliance_states.to_csv('../results/STEP8_low_compliance_states.csv', index=False)
@@ -277,7 +310,7 @@ print()
 # ============================================================================
 # CREATE VISUALIZATIONS
 # ============================================================================
-print(" Creating compliance visualizations...")
+print("🎨 Creating compliance visualizations...")
 
 fig, axes = plt.subplots(2, 2, figsize=(18, 12))
 fig.suptitle('Biometric Update Compliance Analysis - Ages 5 & 15 (Critical Milestones)', 
@@ -363,31 +396,30 @@ print()
 # SUMMARY
 # ============================================================================
 print("=" * 80)
-print(" STEP 8 COMPLETE!")
+print("✅ STEP 8 COMPLETE!")
 print("=" * 80)
 print()
-print(" WHAT WAS DONE:")
-print("  ✓ Calculated Age 5 compliance (5-17 age group)")
-print("  ✓ Calculated Age 15 compliance (included in 5-17 group)")
+print("📋 WHAT WAS DONE:")
+print("  ✓ Calculated Age 5-17 compliance (covers both age 5 and 15 milestones)")
 print("  ✓ Identified states with low compliance")
 print("  ✓ Calculated children at risk of service exclusion")
 print("  ✓ Categorized states by intervention priority")
 print("  ✓ Created comprehensive visualizations")
 print()
-print(" FILES CREATED:")
+print("📁 FILES CREATED:")
 print("  ✓ results/STEP8_biometric_compliance_analysis.csv")
 print("  ✓ results/STEP8_low_compliance_states.csv")
 print("  ✓ results/STEP8_high_exclusion_risk_states.csv")
 print("  ✓ results/STEP8_critical_intervention_states.csv")
 print("  ✓ visualizations/STEP8_biometric_compliance.png")
 print()
-print(" KEY FINDINGS:")
+print("📊 KEY FINDINGS:")
 print(f"  - National child compliance (5-17): {national_child_compliance:.2f}%")
 print(f"  - National adult compliance (18+): {national_adult_compliance:.2f}%")
 print(f"  - Low compliance states: {len(low_compliance_states)}")
 print(f"  - Critical intervention states: {len(critical_states)}")
 print(f"  - Total children at risk of exclusion: {total_at_risk:,.0f} ({national_risk_pct:.2f}%)")
 print()
-print(" STEPS 6, 7, 8 COMPLETE!")
-print("   Ready for Step 9: Anomaly Detection (to be done separately)")
+print("✅ STEPS 6, 7, 8 COMPLETE!")
+print("   Core analysis phase finished successfully!")
 print("=" * 80)

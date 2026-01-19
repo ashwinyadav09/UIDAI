@@ -1,6 +1,6 @@
 """
-PHASE 3 - STEP 7: Child Enrolment Gap Analysis
-===============================================
+PHASE 3 - STEP 7: Child Enrolment Gap Analysis (CORRECTED)
+===========================================================
 Identifies regions with low child enrolment
 
 Calculates:
@@ -9,7 +9,9 @@ Calculates:
 - Compares with population data (using enrolment as proxy)
 - Flags vulnerable regions
 
-Author: UIDAI Hackathon Project
+FIXES:
+- Corrected column names to match cleaned data
+- age_0_5, age_5_17, age_18_greater (not registrations_*)
 """
 
 import pandas as pd
@@ -24,20 +26,21 @@ sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (16, 10)
 
 print("=" * 80)
-print("PHASE 3 - STEP 7: CHILD ENROLMENT GAP ANALYSIS")
+print("PHASE 3 - STEP 7: CHILD ENROLMENT GAP ANALYSIS (CORRECTED)")
 print("=" * 80)
 print()
 
 # ============================================================================
 # LOAD CLEANED DATA
 # ============================================================================
-print(" Loading cleaned enrolment data...")
+print("📂 Loading cleaned enrolment data...")
 try:
     enrolment = pd.read_csv('../data/processed/cleaned_enrolment.csv')
     print("✓ Enrolment data loaded successfully!")
     print(f"  - Total rows: {len(enrolment):,}")
+    print(f"  - Columns: {list(enrolment.columns)}")
 except Exception as e:
-    print(f" Error loading data: {e}")
+    print(f"❌ Error loading data: {e}")
     print("Please run STEP2_FINAL_intelligent_cleaning.py first!")
     exit()
 
@@ -46,15 +49,19 @@ print()
 # ============================================================================
 # STEP 7.1: Calculate Enrolment by Age Group and State
 # ============================================================================
-print(" Step 7.1: Calculating enrolment by age group and state...")
+print("📊 Step 7.1: Calculating enrolment by age group and state...")
 
 # Aggregate by state
 child_enrolment = enrolment.groupby('state').agg({
-    'registrations_0_to_5': 'sum',
-    'registrations_5_to_17': 'sum',
-    'registrations_18_and_above': 'sum',
+    'age_0_5': 'sum',
+    'age_5_17': 'sum',
+    'age_18_greater': 'sum',
     'total_enrolments': 'sum'
 }).reset_index()
+
+# Rename for clarity
+child_enrolment.columns = ['state', 'registrations_0_to_5', 'registrations_5_to_17', 
+                            'registrations_18_and_above', 'total_enrolments']
 
 print(f"✓ Data aggregated for {len(child_enrolment)} states")
 print()
@@ -62,7 +69,7 @@ print()
 # ============================================================================
 # STEP 7.2: Calculate Enrolment Rate for Age 0-5 by State
 # ============================================================================
-print(" Step 7.2: Calculating enrolment rate for age 0-5 by state...")
+print("📈 Step 7.2: Calculating enrolment rate for age 0-5 by state...")
 
 # Calculate percentage of total enrolments that are age 0-5
 child_enrolment['age_0_5_percentage'] = (
@@ -97,7 +104,7 @@ national_0_5_pct = (national_0_5 / national_total_enrol * 100)
 national_5_17_pct = (national_5_17 / national_total_enrol * 100)
 national_18_plus_pct = (national_18_plus / national_total_enrol * 100)
 
-print(" National Benchmarks:")
+print("📊 National Benchmarks:")
 print(f"  - Age 0-5:    {national_0_5_pct:.2f}% of total enrolments ({national_0_5:,})")
 print(f"  - Age 5-17:   {national_5_17_pct:.2f}% of total enrolments ({national_5_17:,})")
 print(f"  - Age 18+:    {national_18_plus_pct:.2f}% of total enrolments ({national_18_plus:,})")
@@ -106,7 +113,7 @@ print()
 # ============================================================================
 # STEP 7.4: Identify States with Low Child Enrolment
 # ============================================================================
-print(" Step 7.4: Identifying states with low child enrolment...")
+print("🔍 Step 7.4: Identifying states with low child enrolment...")
 print("   Using threshold: 70% of national average")
 print()
 
@@ -114,7 +121,7 @@ print()
 threshold_0_5 = national_0_5_pct * 0.7
 threshold_5_17 = national_5_17_pct * 0.7
 
-print(f" Thresholds:")
+print(f"⚠️  Thresholds:")
 print(f"  - Age 0-5 threshold:  {threshold_0_5:.2f}% (70% of national avg)")
 print(f"  - Age 5-17 threshold: {threshold_5_17:.2f}% (70% of national avg)")
 print()
@@ -131,7 +138,7 @@ child_enrolment['at_risk_5_17'] = child_enrolment['age_5_17_percentage'] < thres
 at_risk_0_5 = child_enrolment[child_enrolment['at_risk_0_5']].copy()
 at_risk_5_17 = child_enrolment[child_enrolment['at_risk_5_17']].copy()
 
-print(f" AT-RISK STATES (Age 0-5): {len(at_risk_0_5)} states")
+print(f"🚨 AT-RISK STATES (Age 0-5): {len(at_risk_0_5)} states")
 if len(at_risk_0_5) > 0:
     print("\nStates with low child (0-5) enrolment:")
     at_risk_0_5_sorted = at_risk_0_5.sort_values('age_0_5_percentage')
@@ -143,7 +150,7 @@ else:
     print("  ✓ No states below threshold")
 print()
 
-print(f" AT-RISK STATES (Age 5-17): {len(at_risk_5_17)} states")
+print(f"🚨 AT-RISK STATES (Age 5-17): {len(at_risk_5_17)} states")
 if len(at_risk_5_17) > 0:
     print("\nStates with low child (5-17) enrolment:")
     at_risk_5_17_sorted = at_risk_5_17.sort_values('age_5_17_percentage')
@@ -158,7 +165,7 @@ print()
 # ============================================================================
 # STEP 7.5: Flag Vulnerable Regions (Priority Categorization)
 # ============================================================================
-print(" Step 7.5: Flagging vulnerable regions...")
+print("🎯 Step 7.5: Flagging vulnerable regions...")
 
 def categorize_vulnerability(row):
     """Categorize vulnerability based on enrolment gaps"""
@@ -176,7 +183,7 @@ child_enrolment['vulnerability_level'] = child_enrolment.apply(categorize_vulner
 # Count by vulnerability level
 vulnerability_counts = child_enrolment['vulnerability_level'].value_counts()
 
-print("Vulnerability Distribution:")
+print("📊 Vulnerability Distribution:")
 for level, count in vulnerability_counts.items():
     print(f"  {level:40s}: {count:2d} states")
 print()
@@ -185,7 +192,7 @@ print()
 critical_states = child_enrolment[child_enrolment['vulnerability_level'] == 'Critical (Both age groups)']
 
 if len(critical_states) > 0:
-    print(f" CRITICAL PRIORITY STATES: {len(critical_states)}")
+    print(f"🔴 CRITICAL PRIORITY STATES: {len(critical_states)}")
     print("   States requiring immediate attention:")
     for idx, row in critical_states.iterrows():
         print(f"  {row['state']:40s} → 0-5: {row['age_0_5_percentage']:.2f}%, 5-17: {row['age_5_17_percentage']:.2f}%")
@@ -194,7 +201,7 @@ if len(critical_states) > 0:
 # ============================================================================
 # STEP 7.6: Compare with Population Data (using enrolment as proxy)
 # ============================================================================
-print(" Step 7.6: Comparing child enrolment distribution across states...")
+print("🌍 Step 7.6: Comparing child enrolment distribution across states...")
 print("   (Using total enrolment as population proxy)")
 print()
 
@@ -206,7 +213,7 @@ child_enrolment['enrolment_share'] = (
 # Sort by total enrolments
 top_10_population = child_enrolment.nlargest(10, 'total_enrolments')
 
-print(" Top 10 States by Total Enrolment:")
+print("📊 Top 10 States by Total Enrolment:")
 for idx, row in top_10_population.iterrows():
     print(f"  {row['state']:40s} → {row['total_enrolments']:>12,.0f} ({row['enrolment_share']:>5.2f}%)")
 print()
@@ -214,7 +221,7 @@ print()
 # ============================================================================
 # SAVE RESULTS
 # ============================================================================
-print(" Saving child enrolment gap analysis...")
+print("💾 Saving child enrolment gap analysis...")
 
 child_enrolment.to_csv('../results/STEP7_child_enrolment_analysis.csv', index=False)
 at_risk_0_5.to_csv('../results/STEP7_at_risk_age_0_5.csv', index=False)
@@ -231,7 +238,7 @@ print()
 # ============================================================================
 # CREATE VISUALIZATIONS
 # ============================================================================
-print(" Creating visualizations...")
+print("🎨 Creating visualizations...")
 
 fig, axes = plt.subplots(2, 2, figsize=(18, 12))
 fig.suptitle('Child Enrolment Gap Analysis - Identifying Vulnerable Regions', 
@@ -322,10 +329,10 @@ print()
 # SUMMARY
 # ============================================================================
 print("=" * 80)
-print(" STEP 7 COMPLETE!")
+print("✅ STEP 7 COMPLETE!")
 print("=" * 80)
 print()
-print(" WHAT WAS DONE:")
+print("📋 WHAT WAS DONE:")
 print("  ✓ Calculated enrolment rate for age 0-5 by state")
 print("  ✓ Calculated enrolment rate for age 5-17 by state")
 print("  ✓ Identified states with low child enrolment")
@@ -333,19 +340,19 @@ print("  ✓ Compared with population distribution")
 print("  ✓ Flagged vulnerable regions by priority")
 print("  ✓ Created comprehensive visualizations")
 print()
-print(" FILES CREATED:")
+print("📁 FILES CREATED:")
 print("  ✓ results/STEP7_child_enrolment_analysis.csv")
 print("  ✓ results/STEP7_at_risk_age_0_5.csv")
 print("  ✓ results/STEP7_at_risk_age_5_17.csv")
 print("  ✓ results/STEP7_critical_vulnerable_states.csv")
 print("  ✓ visualizations/STEP7_child_enrolment_gaps.png")
 print()
-print(" KEY FINDINGS:")
+print("📊 KEY FINDINGS:")
 print(f"  - National average (Age 0-5): {national_0_5_pct:.2f}%")
 print(f"  - National average (Age 5-17): {national_5_17_pct:.2f}%")
 print(f"  - At-risk states (Age 0-5): {len(at_risk_0_5)}")
 print(f"  - At-risk states (Age 5-17): {len(at_risk_5_17)}")
 print(f"  - Critical priority states: {len(critical_states)}")
 print()
-print("Next: Run PHASE3_STEP8_biometric_compliance.py")
+print("➡️  Next: Run PHASE3_STEP8_biometric_compliance.py")
 print("=" * 80)
