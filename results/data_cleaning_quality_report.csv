@@ -1,0 +1,5 @@
+Dataset,Initial_Rows,Final_Rows,Rows_Removed,Data_Retained_%,Unique_States
+Enrolment,1006029,978377,27652,97.25,36
+Biometric,1861108,1749151,111957,93.98,36
+Demographic,2071700,1583813,487887,76.45,36
+TOTAL,4938837,4311341,627496,87.29,-
