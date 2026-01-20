@@ -1,2 +1,3 @@
-state,registrations_0_to_5,registrations_5_to_17,registrations_18_and_above,total_enrolments,age_0_5_percentage,age_5_17_percentage,age_18_plus_percentage,gap_0_5,gap_5_17,at_risk_0_5,at_risk_5_17,vulnerability_level
-unknown,0,1,213,214,0.0,0.46728971962616817,99.53271028037383,65.16066950158785,31.249588315612137,True,True,Critical (Both age groups)
+version https://git-lfs.github.com/spec/v1
+oid sha256:9853d4f8d3eb594af53a7e3a39f5c3ac25dfb8f039447875fcec189e282fded8
+size 353

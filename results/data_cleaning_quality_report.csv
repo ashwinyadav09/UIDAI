@@ -1,5 +1,3 @@
-Dataset,Initial_Rows,Final_Rows,Rows_Removed,Data_Retained_%,Unique_States
-Enrolment,1006029,978377,27652,97.25,36
-Biometric,1861108,1749151,111957,93.98,36
-Demographic,2071700,1583813,487887,76.45,36
-TOTAL,4938837,4311341,627496,87.29,-
+version https://git-lfs.github.com/spec/v1
+oid sha256:ea5933bb1ef3e21976726933cd3855402717eb815ef7f70f36eeb26772446650
+size 238
