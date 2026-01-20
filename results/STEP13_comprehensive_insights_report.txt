@@ -292,7 +292,7 @@ bottlenecks, and reduce social vulnerability.
 
 ====================================================================================================
 
-**Report Generated**: 2026-01-20 13:57:27
+**Report Generated**: 2026-01-20 20:28:27
 **Analysis Period**: Full dataset coverage
 **Total States Analyzed**: 37
 **Confidence Level**: 95%

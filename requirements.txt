@@ -1,0 +1,24 @@
+# UIDAI Hackathon - Aadhaar Analysis Requirements
+
+# Core Data Science
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.14.0
+
+# Machine Learning
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+
+# Time Series Forecasting
+prophet>=1.1.0
+statsmodels>=0.14.0
+
+# Utilities
+openpyxl>=3.1.0  # For Excel operations
+joblib>=1.3.0    # For model serialization
+tqdm>=4.65.0     # Progress bars
